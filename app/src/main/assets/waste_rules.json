@@ -1,0 +1,112 @@
+[
+  {
+    "id": 1,
+    "material": "bottle",
+    "category": "Plastic",
+    "binType": "Blue Recycling Bin",
+    "binColorHex": "#2196F3",
+    "instruction": "Rinse bottle, empty all liquids, remove cap if required locally, and crush to save space in the recycling bin.",
+    "preparationSteps": "1. Pour out liquids • 2. Rinse with cold water • 3. Check for #1 PET or #2 HDPE marking",
+    "upcyclingIdea": "Transform into a self-watering herb planter, drip irrigation system, or DIY bird feeder.",
+    "carbonSavedKg": 0.28
+  },
+  {
+    "id": 2,
+    "material": "pizza box",
+    "category": "Paper & Cardboard",
+    "binType": "Green Compost Bin",
+    "binColorHex": "#4CAF50",
+    "instruction": "Tear off oily/greasy portions for organic compost. The clean dry cardboard top can go into the blue recycling bin.",
+    "preparationSteps": "1. Inspect for grease stains • 2. Separate clean top from greasy base • 3. Compost the greasy half",
+    "upcyclingIdea": "Use unprinted cardboard as garden weed mulch barrier or compost brown matter.",
+    "carbonSavedKg": 0.19
+  },
+  {
+    "id": 3,
+    "material": "battery",
+    "category": "E-Waste & Hazardous",
+    "binType": "Special E-Waste Depot",
+    "binColorHex": "#F44336",
+    "instruction": "DANGER: Never dispose of batteries in household bins. They present severe fire hazards. Drop off at certified battery collection bins.",
+    "preparationSteps": "1. Tape terminal ends with clear tape • 2. Store in non-conductive container • 3. Take to retailer drop box",
+    "upcyclingIdea": "Rechargeable batteries can often be reconditioned with smart pulse chargers.",
+    "carbonSavedKg": 0.85
+  },
+  {
+    "id": 4,
+    "material": "cup",
+    "category": "Mixed / Disposable",
+    "binType": "Black Landfill Bin",
+    "binColorHex": "#424242",
+    "instruction": "Most disposable coffee cups are lined with plastic polyethylene and cannot be pulped. Place in general trash unless certified commercially compostable.",
+    "preparationSteps": "1. Remove plastic lid (recycle in blue bin) • 2. Remove paper sleeve (recycle) • 3. Cup body goes into landfill",
+    "upcyclingIdea": "Use clean coffee cups as seed seedling starters.",
+    "carbonSavedKg": 0.08
+  },
+  {
+    "id": 5,
+    "material": "can",
+    "category": "Metal",
+    "binType": "Blue Recycling Bin",
+    "binColorHex": "#2196F3",
+    "instruction": "Aluminum is 100% infinitely recyclable. Empty residue, lightly rinse, and place in the blue recycling bin.",
+    "preparationSteps": "1. Empty liquid • 2. Rinse lightly • 3. Do not crush if municipal optical sorters request intact cans",
+    "upcyclingIdea": "Turn aluminum cans into pencil holders, tea-light lanterns, or garden markers.",
+    "carbonSavedKg": 0.52
+  },
+  {
+    "id": 6,
+    "material": "wine glass",
+    "category": "Glass",
+    "binType": "Blue Recycling Bin",
+    "binColorHex": "#2196F3",
+    "instruction": "Rinse clean and place in glass recycling. Broken glass must be wrapped in newspaper and placed in landfill for safety.",
+    "preparationSteps": "1. Rinse thoroughly • 2. Remove cork or metal screw cap • 3. Place gently into bin",
+    "upcyclingIdea": "Repurpose into a rustic candle vase, apothecary storage jar, or propagate plant cuttings.",
+    "carbonSavedKg": 0.35
+  },
+  {
+    "id": 7,
+    "material": "box",
+    "category": "Paper & Cardboard",
+    "binType": "Blue Recycling Bin",
+    "binColorHex": "#2196F3",
+    "instruction": "Flatten all corrugated cardboard boxes to maximize bin space. Remove excess packing tape and plastic shipping envelopes.",
+    "preparationSteps": "1. Cut and flatten box flat • 2. Remove styrofoam peanuts • 3. Keep dry",
+    "upcyclingIdea": "Craft storage drawer organizers, shipping scratch pads, or compost carbon layers.",
+    "carbonSavedKg": 0.42
+  },
+  {
+    "id": 8,
+    "material": "cell phone",
+    "category": "E-Waste & Hazardous",
+    "binType": "Special E-Waste Depot",
+    "binColorHex": "#F44336",
+    "instruction": "Electronics contain toxic heavy metals and precious gold/copper. Back up data, perform factory reset, and donate or recycle at e-waste facilities.",
+    "preparationSteps": "1. Factory reset • 2. Remove SIM and memory cards • 3. Drop off at tech trade-in",
+    "upcyclingIdea": "Turn an old smartphone into a dedicated security camera, desk clock, or offline music player.",
+    "carbonSavedKg": 2.10
+  },
+  {
+    "id": 9,
+    "material": "banana",
+    "category": "Organic",
+    "binType": "Green Compost Bin",
+    "binColorHex": "#4CAF50",
+    "instruction": "100% organic matter. Place in your home compost pile or municipal green bin to avoid methane production in landfills.",
+    "preparationSteps": "1. Remove plastic sticker • 2. Place in compost or food waste caddy",
+    "upcyclingIdea": "Soak banana peels in water for 48 hours to create potassium-rich organic liquid fertilizer for houseplants.",
+    "carbonSavedKg": 0.15
+  },
+  {
+    "id": 10,
+    "material": "apple",
+    "category": "Organic",
+    "binType": "Green Compost Bin",
+    "binColorHex": "#4CAF50",
+    "instruction": "Fruit cores and peels compost rapidly. Divert from landfill to create rich nutrient soil.",
+    "preparationSteps": "1. Discard stickers • 2. Place in organic bin",
+    "upcyclingIdea": "Boil apple scraps with sugar and water to make homemade apple pectin or vinegar starter.",
+    "carbonSavedKg": 0.12
+  }
+]
