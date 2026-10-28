@@ -13,5 +13,6 @@ data class RuleEntity(
     val instruction: String,
     val preparationSteps: String,
     val upcyclingIdea: String,
-    val carbonSavedKg: Float
+    val carbonSavedKg: Float,
+    val isDisposable: Boolean = true
 )

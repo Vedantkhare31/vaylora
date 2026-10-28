@@ -31,19 +31,18 @@ class CameraAnalyzer(
             try {
                 val bitmap = imageProxyToBitmap(imageProxy)
                 if (bitmap != null) {
-                    val detections = wasteDetector.detect(bitmap)
-                    val best = detections.maxByOrNull { detection ->
-                        detection.categories().firstOrNull()?.score() ?: 0f
-                    }
-                    if (best != null) {
-                        val category = best.categories().firstOrNull()
-                        val label = category?.categoryName()
-                        if (!label.isNullOrEmpty()) {
-                            val rule = ragEngine.findBestRule(label)
-                            val instruction = ragEngine.getDisposalInstruction(label)
-                            withContext(Dispatchers.Main) {
-                                onResult(label, rule, instruction)
-                            }
+                    val result = wasteDetector.detect(bitmap)
+                    if (result != null) {
+                        val rule = ragEngine.findBestRule(result.normalizedMaterial)
+                        val instruction = if (result.isLivingBeing) {
+                            "Living beings are not waste! Please point the camera at everyday household items or packaging."
+                        } else if (result.isBulkOrVehicle) {
+                            rule?.instruction ?: "Bulk item detected. Do not place in standard household bins. Arrange municipal bulk pickup."
+                        } else {
+                            ragEngine.getDisposalInstruction(result.normalizedMaterial)
+                        }
+                        withContext(Dispatchers.Main) {
+                            onResult(result.primaryLabel, rule, instruction)
                         }
                     }
                 }

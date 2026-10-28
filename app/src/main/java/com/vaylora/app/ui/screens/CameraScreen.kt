@@ -203,15 +203,24 @@ fun CameraScreen(
                     .padding(bottom = 90.dp)
             ) {
                 val rule = currentRule
+                val isLivingBeing = rule?.isDisposable == false &&
+                    (rule.category == "Living Being" || rule.material == "person" ||
+                     detectedMaterial?.contains("Living Entity", ignoreCase = true) == true ||
+                     detectedMaterial?.contains("Person", ignoreCase = true) == true)
+
                 val binColor = try {
-                    if (rule != null) Color(android.graphics.Color.parseColor(rule.binColorHex)) else Color(0xFF2196F3)
+                    if (isLivingBeing) Color(0xFF2E7D32)
+                    else if (rule != null) Color(android.graphics.Color.parseColor(rule.binColorHex))
+                    else Color(0xFF2196F3)
                 } catch (_: Exception) {
                     Color(0xFF2196F3)
                 }
 
                 Card(
                     shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0F1B14).copy(alpha = 0.95f)),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isLivingBeing) Color(0xFF0F2618).copy(alpha = 0.95f) else Color(0xFF0F1B14).copy(alpha = 0.95f)
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(20.dp)) {
@@ -221,21 +230,47 @@ fun CameraScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Column {
+                            Column(modifier = Modifier.weight(1f, fill = false)) {
                                 Text(
-                                    text = detectedMaterial?.uppercase() ?: "ITEM DETECTED",
-                                    fontSize = 20.sp,
+                                    text = if (isLivingBeing) "LIVING ENTITY DETECTED" else (detectedMaterial?.uppercase() ?: "ITEM DETECTED"),
+                                    fontSize = if (isLivingBeing) 18.sp else 20.sp,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = Color(0xFF8BC34A)
+                                    color = if (isLivingBeing) Color(0xFF81C784) else Color(0xFF8BC34A)
                                 )
                                 Text(
-                                    text = "On-Device Neural Classification",
+                                    text = if (isLivingBeing) "Protected Life • Non-Disposable Entity" else "On-Device Neural Classification",
                                     fontSize = 11.sp,
                                     color = Color.White.copy(alpha = 0.6f)
                                 )
                             }
 
-                            if (rule != null) {
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            if (isLivingBeing) {
+                                Surface(
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = Color(0xFF2E7D32)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Favorite,
+                                            contentDescription = "Safe",
+                                            tint = Color.White,
+                                            modifier = Modifier.size(12.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(
+                                            text = "DO NOT DISPOSE",
+                                            color = Color.White,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                            } else if (rule != null) {
                                 Surface(
                                     shape = RoundedCornerShape(12.dp),
                                     color = binColor
@@ -255,13 +290,39 @@ fun CameraScreen(
 
                         // Disposal Instruction
                         Text(
-                            text = disposalInstruction ?: (rule?.instruction ?: "Disposal instruction loading..."),
+                            text = if (isLivingBeing) {
+                                "Living beings are people, pets, and nature — NEVER waste! Vaylora protects all life. Please point your camera at household packaging, bottles, or food waste."
+                            } else {
+                                disposalInstruction ?: (rule?.instruction ?: "Disposal instruction loading...")
+                            },
                             color = Color.White,
                             fontSize = 14.sp,
                             lineHeight = 20.sp
                         )
 
-                        if (rule != null) {
+                        if (isLivingBeing) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color(0xFF1B3824), RoundedCornerShape(10.dp))
+                                    .padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.CheckCircle,
+                                    contentDescription = "Protection",
+                                    tint = Color(0xFF81C784),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Safe & Ethical AI: Living entities are filtered out from all waste categories.",
+                                    fontSize = 11.sp,
+                                    color = Color.White.copy(alpha = 0.9f)
+                                )
+                            }
+                        } else if (rule != null) {
                             Spacer(modifier = Modifier.height(10.dp))
                             // Preparation coaching
                             Row(
@@ -308,21 +369,23 @@ fun CameraScreen(
                                     )
                                 }
 
-                                Button(
-                                    onClick = { onNavigateToUpcycling(rule) },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFF009688)
-                                    ),
-                                    shape = RoundedCornerShape(12.dp),
-                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                                ) {
-                                    Icon(
-                                        Icons.Default.AutoAwesome,
-                                        contentDescription = "Upcycle",
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(text = "Upcycle This", fontSize = 12.sp)
+                                if (rule.isDisposable) {
+                                    Button(
+                                        onClick = { onNavigateToUpcycling(rule) },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color(0xFF009688)
+                                        ),
+                                        shape = RoundedCornerShape(12.dp),
+                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.AutoAwesome,
+                                            contentDescription = "Upcycle",
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(text = "Upcycle This", fontSize = 12.sp)
+                                    }
                                 }
                             }
                         }

@@ -16,6 +16,9 @@ interface RuleDao {
     @Query("SELECT * FROM waste_rules WHERE category = :category")
     suspend fun getRulesByCategory(category: String): List<RuleEntity>
 
+    @Query("DELETE FROM waste_rules")
+    suspend fun deleteAll()
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(rules: List<RuleEntity>)
 }

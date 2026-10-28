@@ -2,6 +2,7 @@ package com.vaylora.app.rag
 
 import android.content.Context
 import com.google.mediapipe.tasks.genai.llminference.LlmInference
+import com.vaylora.app.ml.WasteTaxonomy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -20,7 +21,7 @@ class RAGEngine(private val context: Context) {
     private suspend fun loadRulesIntoDatabase() {
         val db = VayloraDatabase.getInstance(context)
         val existing = db.ruleDao().getAllRules()
-        if (existing.isEmpty()) {
+        if (existing.size < 30) {
             val json = context.assets.open("waste_rules.json").bufferedReader().use { it.readText() }
             val array = JSONArray(json)
             val loadedRules = mutableListOf<RuleEntity>()
@@ -36,10 +37,12 @@ class RAGEngine(private val context: Context) {
                         instruction = obj.getString("instruction"),
                         preparationSteps = obj.optString("preparationSteps", "Rinse and clean"),
                         upcyclingIdea = obj.optString("upcyclingIdea", "Explore creative reuse"),
-                        carbonSavedKg = obj.optDouble("carbonSavedKg", 0.25).toFloat()
+                        carbonSavedKg = obj.optDouble("carbonSavedKg", 0.25).toFloat(),
+                        isDisposable = obj.optBoolean("isDisposable", true)
                     )
                 )
             }
+            db.ruleDao().deleteAll()
             db.ruleDao().insertAll(loadedRules)
         }
         cachedRules = db.ruleDao().getAllRules()
@@ -75,24 +78,48 @@ class RAGEngine(private val context: Context) {
     fun findBestRule(detectedMaterial: String): RuleEntity? {
         if (cachedRules.isEmpty()) return null
         val lowerMaterial = detectedMaterial.lowercase().trim()
-        
-        // Exact or contains match first
-        val directMatch = cachedRules.firstOrNull { rule ->
-            val ruleMat = rule.material.lowercase()
-            ruleMat == lowerMaterial || lowerMaterial.contains(ruleMat) || ruleMat.contains(lowerMaterial)
-        }
-        if (directMatch != null) return directMatch
 
-        // Levenshtein similarity fallback
-        return cachedRules.minByOrNull { rule ->
-            levenshteinDistance(rule.material.lowercase(), lowerMaterial)
+        // 1. Safety Tripwire: Living beings are NEVER disposable waste
+        if (WasteTaxonomy.isLivingBeing(lowerMaterial) || lowerMaterial == "person") {
+            return cachedRules.firstOrNull { it.material == "person" || !it.isDisposable }
         }
+
+        // 2. Direct equality match
+        val exactMatch = cachedRules.firstOrNull { rule ->
+            rule.material.equals(lowerMaterial, ignoreCase = true)
+        }
+        if (exactMatch != null) return exactMatch
+
+        // 3. Substring contains match (minimum length 3 to prevent greedy false positives)
+        val containsMatch = cachedRules.firstOrNull { rule ->
+            val ruleMat = rule.material.lowercase()
+            if (ruleMat.length >= 3 && lowerMaterial.length >= 3) {
+                lowerMaterial.contains(ruleMat) || ruleMat.contains(lowerMaterial)
+            } else {
+                lowerMaterial == ruleMat
+            }
+        }
+        if (containsMatch != null) return containsMatch
+
+        // 4. Bounded Levenshtein distance fallback (max edit distance of 2, disposable rules only)
+        val closest = cachedRules
+            .filter { it.isDisposable }
+            .map { rule -> rule to levenshteinDistance(rule.material.lowercase(), lowerMaterial) }
+            .filter { it.second <= 2 }
+            .minByOrNull { it.second }
+            ?.first
+
+        return closest
     }
 
     suspend fun getDisposalInstruction(detectedMaterial: String): String =
         withContext(Dispatchers.Default) {
             val matchedRule = findBestRule(detectedMaterial)
-                ?: return@withContext "No local rule found. Please verify with municipal guidelines."
+                ?: return@withContext "Unclassified item. Inspect packaging for resin code (#1-#7) or consult municipal disposal guidelines."
+
+            if (!matchedRule.isDisposable) {
+                return@withContext matchedRule.instruction
+            }
 
             val llm = llmInference
             if (llm != null) {
