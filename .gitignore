@@ -11,3 +11,5 @@
 local.properties
 *.apk
 .kotlin/
+google-services.json
+**/google-services.json
