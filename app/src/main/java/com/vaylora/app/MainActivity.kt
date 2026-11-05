@@ -4,143 +4,138 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.vaylora.app.data.local.prefs.AppPreferences
 import com.vaylora.app.rag.RAGEngine
-import com.vaylora.app.rag.RuleEntity
-import com.vaylora.app.ui.screens.CameraScreen
-import com.vaylora.app.ui.screens.DashboardScreen
-import com.vaylora.app.ui.screens.UpcyclingScreen
-import com.vaylora.app.ui.screens.WhereToThrowScreen
+import com.vaylora.app.ui.auth.AuthViewModel
+import com.vaylora.app.ui.auth.ForgotPasswordScreen
+import com.vaylora.app.ui.auth.LoginScreen
+import com.vaylora.app.ui.auth.SignUpScreen
+import com.vaylora.app.ui.main.MainApp
 import com.vaylora.app.ui.theme.VayloraTheme
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
-enum class AppScreen(
-    val title: String,
-    val selectedIcon: ImageVector,
-    val unselectedIcon: ImageVector
-) {
-    Dashboard("Home", Icons.Filled.Home, Icons.Outlined.Home),
-    Camera("AI Scan", Icons.Filled.CameraAlt, Icons.Outlined.CameraAlt),
-    WhereToThrow("Where to Throw", Icons.Filled.Delete, Icons.Outlined.Delete),
-    Upcycling("Upcycle", Icons.Filled.Eco, Icons.Outlined.Eco)
+/** Navigation route constants used across the app. */
+object Routes {
+    const val LOGIN = "login"
+    const val SIGN_UP = "sign_up"
+    const val FORGOT_PASSWORD = "forgot_password"
+    const val MAIN = "main"
 }
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var ragEngine: RAGEngine
+    private lateinit var appPreferences: AppPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         ragEngine = RAGEngine(this)
+        appPreferences = AppPreferences(this)
+
+        // Read initial theme synchronously to avoid flash
+        val initialDark = runBlocking { appPreferences.isDarkTheme.first() }
 
         setContent {
-            VayloraTheme {
-                VayloraApp(ragEngine = ragEngine)
+            val isDarkTheme by appPreferences.isDarkTheme.collectAsStateWithLifecycle(initialValue = initialDark)
+
+            VayloraTheme(darkTheme = isDarkTheme) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = if (isDarkTheme) Color(0xFF0C1410) else Color(0xFFF1F8E9)
+                ) {
+                    VayloraRoot(
+                        ragEngine = ragEngine,
+                        appPreferences = appPreferences,
+                        isDarkTheme = isDarkTheme
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun VayloraApp(ragEngine: RAGEngine) {
-    var currentScreen by remember { mutableStateOf(AppScreen.Dashboard) }
-    var rules by remember { mutableStateOf<List<RuleEntity>>(emptyList()) }
+private fun VayloraRoot(
+    ragEngine: RAGEngine,
+    appPreferences: AppPreferences,
+    isDarkTheme: Boolean
+) {
+    val navController = rememberNavController()
+    val authViewModel: AuthViewModel = viewModel()
+    val authState by authViewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        ragEngine.initialize()
-        rules = ragEngine.getAllRules()
+    // Determine start destination based on login state
+    val startDestination = if (authState.isLoggedIn) Routes.MAIN else Routes.LOGIN
+
+    NavHost(navController = navController, startDestination = startDestination) {
+
+        composable(Routes.LOGIN) {
+            LoginScreen(
+                uiState = authState,
+                onSignIn = { email, password -> authViewModel.signIn(email, password) },
+                onNavigateToSignUp = { navController.navigate(Routes.SIGN_UP) },
+                onNavigateToForgotPassword = { navController.navigate(Routes.FORGOT_PASSWORD) },
+                onClearError = { authViewModel.clearError() }
+            )
+        }
+
+        composable(Routes.SIGN_UP) {
+            SignUpScreen(
+                uiState = authState,
+                onSignUp = { name, email, password -> authViewModel.signUp(name, email, password) },
+                onNavigateToSignIn = { navController.popBackStack() },
+                onClearError = { authViewModel.clearError() }
+            )
+        }
+
+        composable(Routes.FORGOT_PASSWORD) {
+            ForgotPasswordScreen(
+                uiState = authState,
+                onSendReset = { email -> authViewModel.sendPasswordReset(email) },
+                onNavigateBack = { navController.popBackStack() },
+                onClearError = { authViewModel.clearError() }
+            )
+        }
+
+        composable(Routes.MAIN) {
+            MainApp(
+                ragEngine = ragEngine,
+                appPreferences = appPreferences,
+                isDarkTheme = isDarkTheme,
+                currentUser = authState.currentUser,
+                userProfile = authState.userProfile,
+                onSignOut = {
+                    authViewModel.signOut()
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(Routes.MAIN) { inclusive = true }
+                    }
+                }
+            )
+        }
     }
 
-    Scaffold(
-        bottomBar = {
-            NavigationBar(
-                containerColor = Color(0xFF0F1C15),
-                tonalElevation = 8.dp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
-            ) {
-                AppScreen.entries.forEach { screen ->
-                    val isSelected = currentScreen == screen
-                    NavigationBarItem(
-                        selected = isSelected,
-                        onClick = { currentScreen = screen },
-                        icon = {
-                            Icon(
-                                imageVector = if (isSelected) screen.selectedIcon else screen.unselectedIcon,
-                                contentDescription = screen.title
-                            )
-                        },
-                        label = {
-                            Text(
-                                text = screen.title,
-                                fontSize = 11.sp
-                            )
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color(0xFF081C10),
-                            selectedTextColor = Color(0xFF8BC34A),
-                            indicatorColor = Color(0xFF8BC34A),
-                            unselectedIconColor = Color.Gray,
-                            unselectedTextColor = Color.Gray
-                        )
-                    )
-                }
+    // Auto-navigate after login/signup
+    LaunchedEffect(authState.isLoggedIn) {
+        if (authState.isLoggedIn && navController.currentDestination?.route != Routes.MAIN) {
+            navController.navigate(Routes.MAIN) {
+                popUpTo(0) { inclusive = true }
             }
-        },
-        containerColor = Color(0xFF0C1410)
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            when (currentScreen) {
-                AppScreen.Dashboard -> {
-                    DashboardScreen(
-                        onNavigateToCamera = { currentScreen = AppScreen.Camera },
-                        onNavigateToWhereToThrow = { currentScreen = AppScreen.WhereToThrow },
-                        onNavigateToUpcycling = { currentScreen = AppScreen.Upcycling }
-                    )
-                }
-
-                AppScreen.Camera -> {
-                    CameraScreen(
-                        ragEngine = ragEngine,
-                        onNavigateBack = { currentScreen = AppScreen.Dashboard },
-                        onNavigateToUpcycling = { _ ->
-                            currentScreen = AppScreen.Upcycling
-                        }
-                    )
-                }
-
-                AppScreen.WhereToThrow -> {
-                    WhereToThrowScreen(
-                        rules = rules,
-                        onSelectUpcycling = { _ ->
-                            currentScreen = AppScreen.Upcycling
-                        }
-                    )
-                }
-
-                AppScreen.Upcycling -> {
-                    UpcyclingScreen(rules = rules)
-                }
+        } else if (!authState.isLoggedIn && navController.currentDestination?.route == Routes.MAIN) {
+            navController.navigate(Routes.LOGIN) {
+                popUpTo(0) { inclusive = true }
             }
         }
     }
