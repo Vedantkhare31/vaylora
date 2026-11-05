@@ -2,6 +2,7 @@ package com.vaylora.app.ml
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Matrix
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.vision.core.RunningMode
@@ -19,7 +20,7 @@ data class VisionInferenceResult(
     val rawPredictions: List<String>
 )
 
-class WasteDetector(context: Context) {
+class WasteDetector(context: Context, private val useFrontCamera: Boolean = false) {
 
     private val objectDetector: ObjectDetector
     private val imageClassifier: ImageClassifier
@@ -48,8 +49,20 @@ class WasteDetector(context: Context) {
         imageClassifier = ImageClassifier.createFromOptions(context, classifierOptions)
     }
 
+    /**
+     * Pre-processes the bitmap to account for front camera mirroring.
+     * Front camera frames are horizontally flipped relative to the scene;
+     * we mirror them back so the classifier/detector sees a canonical image.
+     */
+    private fun preprocessBitmap(bitmap: Bitmap): Bitmap {
+        if (!useFrontCamera) return bitmap
+        val matrix = Matrix().apply { preScale(-1f, 1f) }
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+    }
+
     fun detect(bitmap: Bitmap): VisionInferenceResult? {
-        val mpImage = BitmapImageBuilder(bitmap).build()
+        val processedBitmap = preprocessBitmap(bitmap)
+        val mpImage = BitmapImageBuilder(processedBitmap).build()
 
         // 1. Run Object Detector for spatial & safety checks
         val detections = objectDetector.detect(mpImage).detections()
@@ -90,7 +103,7 @@ class WasteDetector(context: Context) {
             }
         }
 
-        // Check for Bulk Furniture or Vehicles
+        // 3. Check for Bulk Furniture or Vehicles
         val topBulk = detections.firstOrNull { d ->
             val l = d.categories().firstOrNull()?.categoryName() ?: ""
             WasteTaxonomy.isBulkFurniture(l) || WasteTaxonomy.isVehicle(l)
@@ -109,7 +122,7 @@ class WasteDetector(context: Context) {
             )
         }
 
-        // 3. Find the best waste / packaging item
+        // 4. Find the best waste / packaging item
         val allPredictions = mutableListOf<String>()
         var bestLabel = ""
         var bestConfidence = 0f
@@ -140,7 +153,8 @@ class WasteDetector(context: Context) {
         }
 
         val normalized = WasteTaxonomy.normalizeMaterialName(bestLabel)
-        val cleanDisplayLabel = bestLabel.split(",").firstOrNull()?.replace("_", " ")?.trim() ?: bestLabel
+        val cleanDisplayLabel = bestLabel.split(",").firstOrNull()
+            ?.replace("_", " ")?.trim() ?: bestLabel
 
         return VisionInferenceResult(
             primaryLabel = cleanDisplayLabel.replaceFirstChar { it.uppercase() },

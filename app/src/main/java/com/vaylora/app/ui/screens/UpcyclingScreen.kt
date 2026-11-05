@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -29,7 +28,10 @@ data class UpcycleProject(
 )
 
 @Composable
-fun UpcyclingScreen(rules: List<RuleEntity>) {
+fun UpcyclingScreen(
+    rules: List<RuleEntity>,
+    isDarkTheme: Boolean = true
+) {
     val projects = listOf(
         UpcycleProject(
             title = "Self-Watering Herb Planter",
@@ -42,7 +44,7 @@ fun UpcyclingScreen(rules: List<RuleEntity>) {
                 "Thread a cotton string through the bottle neck down into the water reservoir.",
                 "Fill the top with potting soil and plant mint, basil, or cilantro."
             ),
-            ecoImpact = "Reuses PET plastic + zero waste kitchen gardening"
+            ecoImpact = "Reuses PET plastic + zero-waste kitchen gardening"
         ),
         UpcycleProject(
             title = "Rustic Fairy Light Lantern",
@@ -50,54 +52,65 @@ fun UpcyclingScreen(rules: List<RuleEntity>) {
             difficulty = "Easy",
             duration = "10 mins",
             steps = listOf(
-                "Thoroughly clean glass jar and remove adhesive label with warm soapy water.",
-                "Drop in a string of battery-operated or solar micro LED copper wire lights.",
-                "Wrap twine or jute rope around the rim for a natural hanging loop."
+                "Thoroughly clean and dry a glass jam or pickle jar.",
+                "Wrap natural twine around the threaded neck to form a secure hanging loop.",
+                "Insert warm-white LED battery/solar fairy lights inside.",
+                "Hang on a balcony, patio, or place as an eco-friendly dining centerpiece."
             ),
-            ecoImpact = "Diverts heavy glass from landfills + replaces plastic decor"
+            ecoImpact = "100% circular reuse of glass packaging"
         ),
         UpcycleProject(
-            title = "Desk Organizer & Drawer Dividers",
-            material = "Cardboard Box",
+            title = "Modular Desk Drawer Organizers",
+            material = "Cardboard Box / Cereal Box",
             difficulty = "Medium",
             duration = "20 mins",
             steps = listOf(
-                "Measure the interior depth of your study desk drawer.",
-                "Slice clean dry cardboard into slotted interlocking divider strips.",
-                "Assemble grids for cables, pens, keys, and accessories."
+                "Measure your desk drawer height.",
+                "Cut empty cereal or snack boxes down to drawer depth.",
+                "Cover with reclaimed craft paper or decorative newspaper.",
+                "Arrange modular compartments for pens, paperclips, cables, and flash drives."
             ),
-            ecoImpact = "Replaces store-bought plastic trays"
+            ecoImpact = "Diverts corrugated board and replaces plastic organizers"
         ),
         UpcycleProject(
-            title = "Natural Plant Fertilizer Tea",
-            material = "Banana & Fruit Scraps",
-            difficulty = "Super Easy",
-            duration = "5 mins",
+            title = "Acoustic Smartphone Sound Booster",
+            material = "Paper Towel Roll",
+            difficulty = "Easy",
+            duration = "10 mins",
             steps = listOf(
-                "Place banana peels and fruit scraps into a reusable glass container.",
-                "Fill with room-temperature water and cover loosely for 48 hours.",
-                "Strain the liquid and water indoor plants with natural potassium nutrients."
+                "Cut a horizontal slot in the center of a sturdy cardboard tube.",
+                "Attach two push pins at the base to prevent the tube from rolling.",
+                "Insert your smartphone speaker into the slot for natural acoustic amplification."
             ),
-            ecoImpact = "Zero chemical runoff + 100% circular nutrient cycle"
+            ecoImpact = "Zero-electricity passive audio amplifier"
         ),
         UpcycleProject(
-            title = "Pencil Holder & Succulent Pot",
-            material = "Aluminum Can",
-            difficulty = "Crafty",
+            title = "Succulent Tin Can Planter",
+            material = "Aluminum / Tin Can",
+            difficulty = "Medium",
             duration = "25 mins",
             steps = listOf(
-                "Ensure top rim is smooth using pliers or fine sandpaper.",
-                "Punch 3 small drainage holes in the bottom if using for succulents.",
-                "Paint or wrap with twine to match your aesthetic."
+                "Wash food can thoroughly and sand any sharp inner rim edges smooth.",
+                "Punch 3 small drainage holes in the bottom using a hammer and small nail.",
+                "Paint the outside with leftover non-toxic outdoor acrylic paint.",
+                "Add a layer of small gravel pebbles followed by cactus soil and a succulent cutting."
             ),
-            ecoImpact = "Infinite-cycle aluminum put to immediate daily use"
+            ecoImpact = "Saves energy required to melt and re-refine metals"
         )
     )
+
+    val bgColor = if (isDarkTheme) Color(0xFF0C1410) else Color(0xFFF6FBF4)
+    val cardBg = if (isDarkTheme) Color(0xFF14241B) else Color.White
+    val textColor = if (isDarkTheme) Color.White else Color(0xFF1B1B1B)
+    val subtitleColor = if (isDarkTheme) Color(0xFF88A090) else Color(0xFF6B7280)
+    val limeAccent = Color(0xFF8BC34A)
+    val tealAccent = Color(0xFF009688)
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0C1410))
+            .background(bgColor)
+            .statusBarsPadding()
             .padding(horizontal = 16.dp),
         contentPadding = PaddingValues(top = 16.dp, bottom = 90.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -105,193 +118,126 @@ fun UpcyclingScreen(rules: List<RuleEntity>) {
         item {
             Column {
                 Text(
-                    text = "Vaylora Reborn",
-                    fontSize = 26.sp,
+                    text = "Upcycling Workshop",
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.White
+                    color = textColor
                 )
                 Text(
-                    text = "Transform waste into functional art & home essentials",
-                    fontSize = 13.sp,
-                    color = Color(0xFF8BC34A)
+                    text = "Turn household waste into beautiful, functional everyday items",
+                    fontSize = 12.sp,
+                    color = subtitleColor
                 )
             }
-        }
-
-        item {
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(Color(0xFF009688), Color(0xFF8BC34A))
-                        ),
-                        shape = RoundedCornerShape(20.dp)
-                    )
-            ) {
-                Row(
-                    modifier = Modifier.padding(18.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Default.AutoAwesome,
-                        contentDescription = "AI",
-                        tint = Color(0xFF081C10),
-                        modifier = Modifier.size(36.dp)
-                    )
-                    Spacer(modifier = Modifier.width(14.dp))
-                    Column {
-                        Text(
-                            text = "Upcycling Reasoning",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF081C10)
-                        )
-                        Text(
-                            text = "Every item scanned with Vaylora Vision gets an on-device AI upcycling suggestion before disposal.",
-                            fontSize = 11.sp,
-                            color = Color(0xFF0F311C),
-                            lineHeight = 15.sp
-                        )
-                    }
-                }
-            }
-        }
-
-        item {
-            Text(
-                text = "Featured DIY Upcycle Blueprints",
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
         }
 
         items(projects) { project ->
-            UpcycleProjectCard(project)
-        }
-    }
-}
-
-@Composable
-fun UpcycleProjectCard(project: UpcycleProject) {
-    Card(
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF14241B)),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = cardBg),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = project.title,
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = Color(0xFF8BC34A).copy(alpha = 0.2f)
-                ) {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = tealAccent.copy(alpha = 0.2f)
+                        ) {
+                            Text(
+                                text = project.material.uppercase(),
+                                color = tealAccent,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Schedule,
+                                contentDescription = null,
+                                tint = subtitleColor,
+                                modifier = Modifier.size(13.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = project.duration,
+                                fontSize = 11.sp,
+                                color = subtitleColor
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
                     Text(
-                        text = project.difficulty,
-                        color = Color(0xFF8BC34A),
+                        text = project.title,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = "HOW TO MAKE IT:",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                        color = limeAccent,
+                        letterSpacing = 1.sp
                     )
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    project.steps.forEachIndexed { index, step ->
+                        Row(
+                            modifier = Modifier.padding(vertical = 3.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Text(
+                                text = "${index + 1}.",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp,
+                                color = limeAccent,
+                                modifier = Modifier.width(20.dp)
+                            )
+                            Text(
+                                text = step,
+                                fontSize = 12.sp,
+                                color = subtitleColor,
+                                lineHeight = 16.sp,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(tealAccent.copy(alpha = 0.12f), RoundedCornerShape(10.dp))
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Eco,
+                            contentDescription = null,
+                            tint = tealAccent,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = project.ecoImpact,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = tealAccent
+                        )
+                    }
                 }
-            }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Default.Schedule,
-                    contentDescription = "Time",
-                    tint = Color.Gray,
-                    modifier = Modifier.size(13.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = project.duration,
-                    fontSize = 12.sp,
-                    color = Color.Gray
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Icon(
-                    Icons.Default.Inventory2,
-                    contentDescription = "Material",
-                    tint = Color(0xFF009688),
-                    modifier = Modifier.size(13.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = project.material,
-                    fontSize = 12.sp,
-                    color = Color(0xFF009688),
-                    fontWeight = FontWeight.Medium
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = "Step-by-Step Blueprint:",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White.copy(alpha = 0.9f)
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            project.steps.forEachIndexed { index, step ->
-                Row(
-                    modifier = Modifier.padding(vertical = 3.dp),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Text(
-                        text = "${index + 1}.",
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF8BC34A),
-                        fontSize = 12.sp
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = step,
-                        fontSize = 12.sp,
-                        color = Color.White.copy(alpha = 0.8f),
-                        lineHeight = 16.sp
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFF0D1B13), RoundedCornerShape(10.dp))
-                    .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    Icons.Default.Eco,
-                    contentDescription = "Eco",
-                    tint = Color(0xFF8BC34A),
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = project.ecoImpact,
-                    fontSize = 11.sp,
-                    color = Color(0xFF8BC34A)
-                )
             }
         }
     }

@@ -22,26 +22,34 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vaylora.app.R
+import com.vaylora.app.domain.model.UserProfile
 
 @Composable
 fun DashboardScreen(
+    userProfile: UserProfile? = null,
+    isDarkTheme: Boolean = true,
     onNavigateToCamera: () -> Unit,
     onNavigateToWhereToThrow: () -> Unit,
-    onNavigateToUpcycling: () -> Unit
+    onNavigateToUpcycling: () -> Unit,
+    onNavigateToSettings: () -> Unit = {}
 ) {
-    val emeraldDark = Color(0xFF0F2B1D)
+    val emeraldDark = if (isDarkTheme) Color(0xFF0F2B1D) else Color(0xFFE8F5E9)
     val limeAccent = Color(0xFF8BC34A)
     val tealAccent = Color(0xFF009688)
+    val bgColor = if (isDarkTheme) Color(0xFF0C1410) else Color(0xFFF6FBF4)
+    val textColor = if (isDarkTheme) Color.White else Color(0xFF1B1B1B)
+    val cardBg = if (isDarkTheme) Color(0xFF14241B) else Color.White
+    val subtitleColor = if (isDarkTheme) Color(0xFF88A090) else Color(0xFF6B7280)
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0C1410))
+            .background(bgColor)
             .padding(horizontal = 16.dp),
         contentPadding = PaddingValues(top = 20.dp, bottom = 90.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // App Header with Logo
+        // App Header with Logo & Profile Quick Access
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -62,11 +70,15 @@ fun DashboardScreen(
                             text = "VAYLORA",
                             fontSize = 24.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = Color.White,
+                            color = textColor,
                             letterSpacing = 1.sp
                         )
                         Text(
-                            text = "On-Device AI Waste Intelligence",
+                            text = if (userProfile != null && userProfile.name.isNotBlank()) {
+                                "Hello, ${userProfile.name} • On-Device AI"
+                            } else {
+                                "On-Device AI Waste Intelligence"
+                            },
                             fontSize = 12.sp,
                             color = limeAccent,
                             fontWeight = FontWeight.Medium
@@ -74,262 +86,215 @@ fun DashboardScreen(
                     }
                 }
 
-                Surface(
-                    shape = RoundedCornerShape(20.dp),
-                    color = Color(0xFF1E382B),
-                    modifier = Modifier.padding(4.dp)
+                IconButton(
+                    onClick = onNavigateToSettings,
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .background(cardBg)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(limeAccent)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "City Rules Live",
-                            fontSize = 11.sp,
-                            color = Color.White,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Settings",
+                        tint = limeAccent,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
             }
         }
 
-        // Hero Impact Card
+        // Live Hero Scan Banner (Call to Action)
         item {
             Card(
                 shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(Color(0xFF1B4D3E), Color(0xFF112D22))
-                        ),
-                        shape = RoundedCornerShape(24.dp)
-                    )
+                    .clickable { onNavigateToCamera() },
+                colors = CardDefaults.cardColors(containerColor = Color.Transparent)
             ) {
-                Column(modifier = Modifier.padding(20.dp)) {
+                Box(
+                    modifier = Modifier
+                        .background(
+                            Brush.linearGradient(
+                                listOf(
+                                    Color(0xFF1B5E20),
+                                    Color(0xFF004D40)
+                                )
+                            )
+                        )
+                        .padding(20.dp)
+                ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Eco-Pulse Footprint",
-                            color = Color.White.copy(alpha = 0.8f),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Text(
-                            text = "🔥 7 Day Streak",
-                            color = limeAccent,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        StatItem(title = "Items Diverted", value = "42", unit = "items")
-                        StatItem(title = "CO2 Prevented", value = "9.8", unit = "kg")
-                        StatItem(title = "Accuracy", value = "98%", unit = "on-device")
-                    }
-
-                    Spacer(modifier = Modifier.height(18.dp))
-
-                    // Mini Weekly Bar Graph
-                    Text(
-                        text = "Weekly Activity",
-                        fontSize = 11.sp,
-                        color = Color.White.copy(alpha = 0.6f)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Bottom
-                    ) {
-                        val days = listOf("M", "T", "W", "T", "F", "S", "S")
-                        val heights = listOf(0.4f, 0.7f, 0.6f, 0.9f, 0.5f, 0.8f, 1f)
-                        days.forEachIndexed { idx, day ->
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Box(
-                                    modifier = Modifier
-                                        .width(14.dp)
-                                        .height((45 * heights[idx]).dp)
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .background(if (idx == 6) limeAccent else tealAccent.copy(alpha = 0.7f))
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = limeAccent.copy(alpha = 0.25f)
+                            ) {
                                 Text(
-                                    text = day,
+                                    text = "REAL-TIME CAMERA SCAN",
+                                    color = Color(0xFFAED581),
                                     fontSize = 10.sp,
-                                    color = Color.White.copy(alpha = 0.7f)
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                 )
                             }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Point & Identify Waste",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Front & back cameras supported • 1,000+ materials recognized automatically.",
+                                fontSize = 12.sp,
+                                color = Color.White.copy(alpha = 0.85f),
+                                lineHeight = 16.sp
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(CircleShape)
+                                .background(limeAccent),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CameraAlt,
+                                contentDescription = "Scan",
+                                tint = Color(0xFF0C1410),
+                                modifier = Modifier.size(28.dp)
+                            )
                         }
                     }
                 }
             }
         }
 
-        // Primary Action: Instant AI Camera Scan
+        // Personal Eco Stats Counter
         item {
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onNavigateToCamera() }
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(Color(0xFF8BC34A), Color(0xFF009688))
-                        ),
-                        shape = RoundedCornerShape(20.dp)
-                    )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Live AI Waste Scanner",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = Color(0xFF081C10)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Automatic real-time detection & disposal reasoning",
-                            fontSize = 12.sp,
-                            color = Color(0xFF0D301C),
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .size(50.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFF081C10)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CameraAlt,
-                            contentDescription = "Scan",
-                            tint = limeAccent,
-                            modifier = Modifier.size(26.dp)
-                        )
-                    }
-                }
+                StatCard(
+                    title = "Items Scanned",
+                    value = "${userProfile?.totalItemsScanned ?: 0}",
+                    icon = Icons.Default.QrCodeScanner,
+                    accentColor = limeAccent,
+                    cardBg = cardBg,
+                    textColor = textColor,
+                    subtitleColor = subtitleColor,
+                    modifier = Modifier.weight(1f)
+                )
+                StatCard(
+                    title = "CO₂ Saved",
+                    value = String.format("%.1f kg", userProfile?.totalCarbonSavedKg ?: 0f),
+                    icon = Icons.Default.Eco,
+                    accentColor = tealAccent,
+                    cardBg = cardBg,
+                    textColor = textColor,
+                    subtitleColor = subtitleColor,
+                    modifier = Modifier.weight(1f)
+                )
+                StatCard(
+                    title = "Eco Score",
+                    value = "${userProfile?.ecoScore ?: 0}",
+                    icon = Icons.Default.Star,
+                    accentColor = Color(0xFFFFB300),
+                    cardBg = cardBg,
+                    textColor = textColor,
+                    subtitleColor = subtitleColor,
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
 
-        // Feature Hub Grid
+        // Quick Navigation Cards
         item {
             Text(
-                text = "Waste Management Tools",
-                fontSize = 16.sp,
+                text = "EXPLORE FEATURES",
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White,
-                modifier = Modifier.padding(vertical = 4.dp)
+                color = limeAccent,
+                letterSpacing = 1.sp,
+                modifier = Modifier.padding(start = 4.dp)
             )
         }
 
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                FeatureCard(
-                    title = "Where To Throw?",
-                    subtitle = "Municipal Bin Directory",
-                    icon = Icons.Default.Delete,
-                    accentColor = Color(0xFF2196F3),
-                    modifier = Modifier.weight(1f),
-                    onClick = onNavigateToWhereToThrow
-                )
-                FeatureCard(
-                    title = "Vaylora Reborn",
-                    subtitle = "Creative Upcycling",
-                    icon = Icons.Default.Eco,
-                    accentColor = Color(0xFF8BC34A),
-                    modifier = Modifier.weight(1f),
-                    onClick = onNavigateToUpcycling
-                )
-            }
+            QuickActionTile(
+                title = "Where To Throw Directory",
+                subtitle = "Search 30+ comprehensive waste rules, bin color hex codes, & prep steps",
+                icon = Icons.Default.Delete,
+                color = Color(0xFF2196F3),
+                cardBg = cardBg,
+                textColor = textColor,
+                subtitleColor = subtitleColor,
+                onClick = onNavigateToWhereToThrow
+            )
         }
 
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                FeatureCard(
-                    title = "Contamination",
-                    subtitle = "Cleanliness Coach",
-                    icon = Icons.Default.Warning,
-                    accentColor = Color(0xFFFF9800),
-                    modifier = Modifier.weight(1f),
-                    onClick = onNavigateToWhereToThrow
-                )
-                FeatureCard(
-                    title = "Local Rules",
-                    subtitle = "RAG Knowledge Base",
-                    icon = Icons.Default.MenuBook,
-                    accentColor = Color(0xFF9C27B0),
-                    modifier = Modifier.weight(1f),
-                    onClick = onNavigateToWhereToThrow
-                )
-            }
+            QuickActionTile(
+                title = "Upcycling Workshop",
+                subtitle = "Step-by-step DIY projects: turn plastic bottles and glass jars into planters & crafts",
+                icon = Icons.Default.AutoAwesome,
+                color = Color(0xFF9C27B0),
+                cardBg = cardBg,
+                textColor = textColor,
+                subtitleColor = subtitleColor,
+                onClick = onNavigateToUpcycling
+            )
         }
 
-        // Pro Tip Card
+        // Safety & Ethics Notice
         item {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF14241B)),
+                colors = CardDefaults.cardColors(containerColor = cardBg),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.Top
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Lightbulb,
-                        contentDescription = "Tip",
-                        tint = limeAccent,
-                        modifier = Modifier.size(24.dp)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFF2E7D32).copy(alpha = 0.2f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Favorite,
+                            contentDescription = "Safe AI",
+                            tint = Color(0xFF4CAF50),
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(
-                            text = "Did You Know?",
+                            text = "Ethical On-Device Safety Active",
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            fontSize = 14.sp
+                            color = textColor
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = "A single greasy pizza box can ruin an entire batch of paper pulp. Always tear off the clean lid to recycle and compost the oily base!",
-                            color = Color.White.copy(alpha = 0.75f),
-                            fontSize = 12.sp,
-                            lineHeight = 16.sp
+                            text = "100+ living-entity filters prevent people and pets from ever being mapped to waste categories.",
+                            fontSize = 11.sp,
+                            color = subtitleColor,
+                            lineHeight = 15.sp
                         )
                     }
                 }
@@ -339,76 +304,97 @@ fun DashboardScreen(
 }
 
 @Composable
-fun StatItem(title: String, value: String, unit: String) {
-    Column {
-        Text(
-            text = title,
-            fontSize = 11.sp,
-            color = Color.White.copy(alpha = 0.6f)
-        )
-        Spacer(modifier = Modifier.height(2.dp))
-        Row(verticalAlignment = Alignment.Bottom) {
+private fun StatCard(
+    title: String,
+    value: String,
+    icon: ImageVector,
+    accentColor: Color,
+    cardBg: Color,
+    textColor: Color,
+    subtitleColor: Color,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = cardBg),
+        modifier = modifier
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = accentColor,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = value,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
+                fontSize = 18.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = textColor
             )
-            Spacer(modifier = Modifier.width(3.dp))
             Text(
-                text = unit,
-                fontSize = 11.sp,
-                color = Color(0xFF8BC34A),
-                modifier = Modifier.padding(bottom = 3.dp)
+                text = title,
+                fontSize = 10.sp,
+                color = subtitleColor,
+                maxLines = 1
             )
         }
     }
 }
 
 @Composable
-fun FeatureCard(
+private fun QuickActionTile(
     title: String,
     subtitle: String,
     icon: ImageVector,
-    accentColor: Color,
-    modifier: Modifier = Modifier,
+    color: Color,
+    cardBg: Color,
+    textColor: Color,
+    subtitleColor: Color,
     onClick: () -> Unit
 ) {
     Card(
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF15261C)),
-        modifier = modifier
-            .clip(RoundedCornerShape(18.dp))
-            .clickable { onClick() }
+        colors = CardDefaults.cardColors(containerColor = cardBg),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(accentColor.copy(alpha = 0.2f)),
+                    .size(46.dp)
+                    .clip(CircleShape)
+                    .background(color.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
-                    contentDescription = title,
-                    tint = accentColor,
-                    modifier = Modifier.size(22.dp)
+                    contentDescription = null,
+                    tint = color,
+                    modifier = Modifier.size(24.dp)
                 )
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = title,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = subtitle,
-                fontSize = 11.sp,
-                color = Color.White.copy(alpha = 0.6f)
-            )
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = subtitle,
+                    fontSize = 12.sp,
+                    color = subtitleColor,
+                    lineHeight = 16.sp
+                )
+            }
         }
     }
 }

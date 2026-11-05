@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,6 +26,7 @@ import com.vaylora.app.rag.RuleEntity
 @Composable
 fun WhereToThrowScreen(
     rules: List<RuleEntity>,
+    isDarkTheme: Boolean = true,
     onSelectUpcycling: (RuleEntity) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
@@ -45,55 +47,70 @@ fun WhereToThrowScreen(
         }
     }
 
+    val bgColor = if (isDarkTheme) Color(0xFF0C1410) else Color(0xFFF6FBF4)
+    val cardBg = if (isDarkTheme) Color(0xFF14241B) else Color.White
+    val textColor = if (isDarkTheme) Color.White else Color(0xFF1B1B1B)
+    val subtitleColor = if (isDarkTheme) Color(0xFF88A090) else Color(0xFF6B7280)
+    val limeAccent = Color(0xFF8BC34A)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0C1410))
+            .background(bgColor)
+            .statusBarsPadding()
             .padding(horizontal = 16.dp)
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Title
+        // Title Header
         Text(
-            text = "Where To Throw?",
-            fontSize = 26.sp,
+            text = "Where To Throw",
+            fontSize = 24.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = Color.White
+            color = textColor
         )
         Text(
-            text = "Instant municipal bin lookup & sorting guide",
-            fontSize = 13.sp,
-            color = Color(0xFF8BC34A)
+            text = "Comprehensive local disposal & recycling guidelines",
+            fontSize = 12.sp,
+            color = subtitleColor
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
         // Search Bar
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            placeholder = { Text("Search bottle, pizza box, battery, cup...", color = Color.Gray) },
+            placeholder = { Text("Search materials, bins, or keywords...", fontSize = 13.sp) },
             leadingIcon = {
-                Icon(Icons.Default.Search, contentDescription = "Search", tint = Color(0xFF8BC34A))
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search",
+                    tint = limeAccent
+                )
             },
             trailingIcon = {
                 if (searchQuery.isNotEmpty()) {
                     IconButton(onClick = { searchQuery = "" }) {
-                        Icon(Icons.Default.Close, contentDescription = "Clear", tint = Color.Gray)
+                        Icon(
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = "Clear",
+                            tint = subtitleColor
+                        )
                     }
                 }
             },
             singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFF15261C),
-                unfocusedContainerColor = Color(0xFF15261C),
-                focusedBorderColor = Color(0xFF8BC34A),
-                unfocusedBorderColor = Color(0xFF233B2D),
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
-            ),
-            modifier = Modifier.fillMaxWidth()
+                focusedContainerColor = cardBg,
+                unfocusedContainerColor = cardBg,
+                focusedBorderColor = limeAccent,
+                unfocusedBorderColor = Color.Transparent,
+                focusedTextColor = textColor,
+                unfocusedTextColor = textColor
+            )
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -105,34 +122,45 @@ fun WhereToThrowScreen(
                 .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            categories.forEach { cat ->
-                val isSelected = cat == selectedCategory
-                Surface(
-                    shape = RoundedCornerShape(20.dp),
-                    color = if (isSelected) Color(0xFF8BC34A) else Color(0xFF172B1F),
-                    modifier = Modifier.clickable { selectedCategory = cat }
-                ) {
-                    Text(
-                        text = cat,
-                        color = if (isSelected) Color(0xFF081C10) else Color.White,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp)
-                    )
-                }
+            categories.forEach { category ->
+                val isSelected = category == selectedCategory
+                FilterChip(
+                    selected = isSelected,
+                    onClick = { selectedCategory = category },
+                    label = {
+                        Text(
+                            text = category,
+                            fontSize = 12.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                        )
+                    },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = limeAccent,
+                        selectedLabelColor = Color(0xFF0C1410),
+                        containerColor = cardBg,
+                        labelColor = textColor
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                )
             }
         }
 
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        // Results List
+        // Rule Item List
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 90.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(filteredRules, key = { it.id }) { rule ->
-                RuleCard(rule = rule, onUpcycleClick = { onSelectUpcycling(rule) })
+            items(filteredRules) { rule ->
+                RuleCard(
+                    rule = rule,
+                    cardBg = cardBg,
+                    textColor = textColor,
+                    subtitleColor = subtitleColor,
+                    onUpcycle = { onSelectUpcycling(rule) }
+                )
             }
 
             if (filteredRules.isEmpty()) {
@@ -145,15 +173,15 @@ fun WhereToThrowScreen(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
-                                Icons.Default.SearchOff,
-                                contentDescription = "None",
-                                tint = Color.Gray,
+                                imageVector = Icons.Default.SearchOff,
+                                contentDescription = null,
+                                tint = subtitleColor,
                                 modifier = Modifier.size(48.dp)
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "No rules match \"$searchQuery\"",
-                                color = Color.Gray,
+                                color = subtitleColor,
                                 fontSize = 14.sp
                             )
                         }
@@ -165,7 +193,13 @@ fun WhereToThrowScreen(
 }
 
 @Composable
-fun RuleCard(rule: RuleEntity, onUpcycleClick: () -> Unit) {
+private fun RuleCard(
+    rule: RuleEntity,
+    cardBg: Color,
+    textColor: Color,
+    subtitleColor: Color,
+    onUpcycle: () -> Unit
+) {
     val binColor = try {
         Color(android.graphics.Color.parseColor(rule.binColorHex))
     } catch (_: Exception) {
@@ -174,39 +208,30 @@ fun RuleCard(rule: RuleEntity, onUpcycleClick: () -> Unit) {
 
     Card(
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF14241B)),
+        colors = CardDefaults.cardColors(containerColor = cardBg),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Header Row: Material and Bin Badge
+            // Header: Material Title + Bin Badge
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(10.dp)
-                            .clip(CircleShape)
-                            .background(binColor)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = rule.material.replaceFirstChar { it.uppercase() },
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
+                Text(
+                    text = rule.material.replaceFirstChar { it.uppercase() },
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
+                )
 
                 Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = binColor.copy(alpha = 0.2f)
+                    shape = RoundedCornerShape(10.dp),
+                    color = binColor
                 ) {
                     Text(
                         text = rule.binType,
-                        color = binColor,
+                        color = Color.White,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -214,79 +239,66 @@ fun RuleCard(rule: RuleEntity, onUpcycleClick: () -> Unit) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            // Primary Instruction
+            // Instruction
             Text(
                 text = rule.instruction,
-                color = Color.White.copy(alpha = 0.9f),
                 fontSize = 13.sp,
+                color = subtitleColor,
                 lineHeight = 18.sp
             )
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Preparation Steps
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFF0F1B14), RoundedCornerShape(10.dp))
-                    .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            // Preparation Step Row
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    Icons.Default.CheckCircle,
-                    contentDescription = "Prep",
+                    imageVector = Icons.Default.CheckCircleOutline,
+                    contentDescription = null,
                     tint = Color(0xFF8BC34A),
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(14.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = rule.preparationSteps,
                     fontSize = 11.sp,
-                    color = Color.White.copy(alpha = 0.75f)
+                    color = subtitleColor,
+                    maxLines = 2
                 )
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Upcycling & Impact Footer
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.CloudDone,
-                        contentDescription = "CO2",
-                        tint = Color(0xFF8BC34A),
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "-${rule.carbonSavedKg} kg CO2e saved",
-                        fontSize = 11.sp,
-                        color = Color(0xFF8BC34A),
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-
+            // Upcycling Trigger Button (if available)
+            if (rule.isDisposable && rule.upcyclingIdea.isNotBlank()) {
+                Spacer(modifier = Modifier.height(10.dp))
                 Row(
-                    modifier = Modifier.clickable { onUpcycleClick() },
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onUpcycle),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        text = "Upcycle",
-                        fontSize = 12.sp,
-                        color = Color(0xFF009688),
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = null,
+                            tint = Color(0xFF009688),
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Upcycling Idea Available",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF009688)
+                        )
+                    }
+
                     Icon(
-                        Icons.Default.ArrowForward,
-                        contentDescription = "Go",
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
                         tint = Color(0xFF009688),
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(12.dp)
                     )
                 }
             }

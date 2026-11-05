@@ -13,7 +13,7 @@ import java.nio.ByteBuffer
 class CameraAnalyzer(
     private val wasteDetector: WasteDetector,
     private val ragEngine: RAGEngine,
-    private val onResult: (material: String, rule: RuleEntity?, instruction: String) -> Unit
+    private val onResult: (material: String, confidence: Float, rule: RuleEntity?, instruction: String, isLivingBeing: Boolean) -> Unit
 ) : ImageAnalysis.Analyzer {
 
     private var isProcessing = false
@@ -35,14 +35,14 @@ class CameraAnalyzer(
                     if (result != null) {
                         val rule = ragEngine.findBestRule(result.normalizedMaterial)
                         val instruction = if (result.isLivingBeing) {
-                            "Living beings are not waste! Please point the camera at everyday household items or packaging."
+                            "Living beings are people, pets, and nature — NEVER waste!"
                         } else if (result.isBulkOrVehicle) {
-                            rule?.instruction ?: "Bulk item detected. Do not place in standard household bins. Arrange municipal bulk pickup."
+                            rule?.instruction ?: "Bulk item: Schedule municipal bulk pickup."
                         } else {
                             ragEngine.getDisposalInstruction(result.normalizedMaterial)
                         }
                         withContext(Dispatchers.Main) {
-                            onResult(result.primaryLabel, rule, instruction)
+                            onResult(result.primaryLabel, result.confidence, rule, instruction, result.isLivingBeing)
                         }
                     }
                 }
