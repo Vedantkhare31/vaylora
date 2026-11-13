@@ -122,42 +122,37 @@ class WasteDetector(context: Context, private val useFrontCamera: Boolean = fals
             )
         }
 
-        // 4. Find the best waste / packaging item
+        // 4. Find the best waste / packaging item using ONLY the ImageClassifier.
+        //    The COCO ObjectDetector (80 classes) is intentionally excluded here —
+        //    it confuses TV/laptop/oven/microwave (all within indices 72-82 of COCO).
+        //    The EfficientNet-Lite0 ImageClassifier (1,000 ImageNet classes) is far
+        //    more accurate for real-world object labeling.
         val allPredictions = mutableListOf<String>()
-        var bestLabel = ""
-        var bestConfidence = 0f
 
-        // Check fine-grained classifier first
+        // Collect classifier predictions only
         for (cat in classifierCategories) {
-            val raw = cat.categoryName()
-            allPredictions.add(raw)
-            if (cat.score() > bestConfidence && !WasteTaxonomy.isLivingBeing(raw)) {
-                bestConfidence = cat.score()
-                bestLabel = raw
-            }
+            allPredictions.add(cat.categoryName())
         }
-
-        // Check object detector
+        // Also record detector labels for debug, but do NOT use their scores for ranking
         for (det in detections) {
-            val cat = det.categories().firstOrNull() ?: continue
-            val raw = cat.categoryName()
-            allPredictions.add(raw)
-            if (cat.score() > bestConfidence && !WasteTaxonomy.isLivingBeing(raw)) {
-                bestConfidence = cat.score()
-                bestLabel = raw
-            }
+            det.categories().firstOrNull()?.categoryName()?.let { allPredictions.add("det:$it") }
         }
 
-        if (bestLabel.isBlank()) {
-            return null
-        }
+        // Pick the top classifier result that is NOT a living being
+        val bestCat = classifierCategories.firstOrNull { cat ->
+            !WasteTaxonomy.isLivingBeing(cat.categoryName())
+        } ?: return null
 
+        val bestLabel = bestCat.categoryName()
+        val bestConfidence = bestCat.score()
         val normalized = WasteTaxonomy.normalizeMaterialName(bestLabel)
+
+        // Clean up the ImageNet label: "laptop, laptop computer" → "Laptop"
         val cleanDisplayLabel = bestLabel.split(",").firstOrNull()
-            ?.replace("_", " ")?.trim() ?: bestLabel
+            ?.replace("_", " ")?.trim()?.replaceFirstChar { it.uppercase() } ?: bestLabel
 
         return VisionInferenceResult(
-            primaryLabel = cleanDisplayLabel.replaceFirstChar { it.uppercase() },
+            primaryLabel = cleanDisplayLabel,
             normalizedMaterial = normalized,
             confidence = bestConfidence,
             isLivingBeing = false,
